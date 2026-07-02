@@ -31,7 +31,7 @@
     }
     @media print {
       @page {
-        margin: 12mm;
+        margin: 8mm;
       }
 
       body {
@@ -39,6 +39,7 @@
         display: block !important;
         padding: 0 !important;
         min-height: auto !important;
+        min-width: 0 !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -59,6 +60,7 @@
       #output {
         display: block !important;
         margin-top: 0 !important;
+        max-width: none !important;
       }
 
       #printBtn {
@@ -93,6 +95,48 @@
         break-inside: avoid;
         page-break-inside: avoid;
       }
+
+      #output {
+        font-size: 11px !important;
+      }
+
+      #output .space-y-4 {
+        gap: 0.5rem !important;
+      }
+
+      #output .p-6 {
+        padding: 0.5rem !important;
+      }
+
+      #output .p-4 {
+        padding: 0.45rem 0.6rem !important;
+      }
+
+      #output .mb-4,
+      #output .mb-3,
+      #output .mt-2 {
+        margin: 0.25rem 0 !important;
+      }
+
+      #output .rounded-2xl,
+      #output .rounded-xl,
+      #output .rounded-lg {
+        border-radius: 8px !important;
+      }
+
+      #outputGambar,
+      #outputBahanSummary,
+      #outputOperasionalSummary {
+        display: none !important;
+      }
+
+      #output .grid.gap-4.md\:grid-cols-2 {
+        gap: 0.35rem !important;
+      }
+
+      #output .no-print {
+        display: none !important;
+      }
     }
 
     body.print-mode {
@@ -100,6 +144,7 @@
       display: block !important;
       padding: 0 !important;
       min-height: auto !important;
+      min-width: 0 !important;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -120,6 +165,8 @@
     body.print-mode #output {
       display: block !important;
       margin-top: 0 !important;
+      max-width: none !important;
+      font-size: 11px !important;
     }
 
     body.print-mode #printBtn {
@@ -142,6 +189,44 @@
     body.print-mode #output > div {
       break-inside: avoid;
       page-break-inside: avoid;
+    }
+
+    body.print-mode #output .space-y-4 {
+      gap: 0.5rem !important;
+    }
+
+    body.print-mode #output .p-6 {
+      padding: 0.5rem !important;
+    }
+
+    body.print-mode #output .p-4 {
+      padding: 0.45rem 0.6rem !important;
+    }
+
+    body.print-mode #output .mb-4,
+    body.print-mode #output .mb-3,
+    body.print-mode #output .mt-2 {
+      margin: 0.25rem 0 !important;
+    }
+
+    body.print-mode #output .rounded-2xl,
+    body.print-mode #output .rounded-xl,
+    body.print-mode #output .rounded-lg {
+      border-radius: 8px !important;
+    }
+
+    body.print-mode #outputGambar,
+    body.print-mode #outputBahanSummary,
+    body.print-mode #outputOperasionalSummary {
+      display: none !important;
+    }
+
+    body.print-mode #output .grid.gap-4.md\:grid-cols-2 {
+      gap: 0.35rem !important;
+    }
+
+    body.print-mode #output .no-print {
+      display: none !important;
     }
   </style>
 </head>
@@ -463,6 +548,55 @@
       container.innerHTML = items.map((item, index) => formatter(item, index)).join('');
     }
 
+    const printHideElements = [
+      'outputGambar',
+      'outputBahanSummary',
+      'outputOperasionalSummary'
+    ];
+
+    window.setPrintCompactMode = function(enabled) {
+      const output = document.getElementById('output');
+      if (!output) {
+        return;
+      }
+
+      if (enabled) {
+        printHideElements.forEach((id) => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.style.setProperty('display', 'none', 'important');
+          }
+        });
+
+        output.querySelectorAll('.p-6').forEach((element) => {
+          element.style.setProperty('padding', '0.5rem', 'important');
+        });
+
+        output.querySelectorAll('.p-4').forEach((element) => {
+          element.style.setProperty('padding', '0.45rem 0.6rem', 'important');
+        });
+
+        output.querySelectorAll('.mb-4, .mb-3, .mt-2').forEach((element) => {
+          element.style.setProperty('margin', '0.25rem 0', 'important');
+        });
+
+        output.querySelectorAll('.space-y-4').forEach((element) => {
+          element.style.setProperty('gap', '0.5rem', 'important');
+        });
+      } else {
+        printHideElements.forEach((id) => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.style.removeProperty('display');
+          }
+        });
+
+        output.querySelectorAll('.p-6, .p-4, .mb-4, .mb-3, .mt-2, .space-y-4').forEach((element) => {
+          element.removeAttribute('style');
+        });
+      }
+    };
+
     function collectState() {
       const bahanRows = collectRows('#bahanRows tr', 'bahan');
       const operasionalRows = collectRows('#operasionalRows tr', 'operasional');
@@ -732,15 +866,18 @@
       document.getElementById('resetBtn').addEventListener('click', resetForm);
       document.getElementById('printBtn').addEventListener('click', function() {
         document.body.classList.add('print-mode');
+          setPrintCompactMode(true);
         window.print();
       });
 
       window.addEventListener('beforeprint', function() {
         document.body.classList.add('print-mode');
+          setPrintCompactMode(true);
       });
 
       window.addEventListener('afterprint', function() {
         document.body.classList.remove('print-mode');
+          setPrintCompactMode(false);
       });
 
       if (!loadState()) {
