@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator Biaya Produksi</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fadeInUp {
+      animation: fadeInUp 0.6s ease-out;
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .cost-table th,
+    .cost-table td {
+      border-bottom: 1px solid #e5e7eb;
+    }
+    @media print {
+      @page {
+        margin: 12mm;
+      }
+
+      body {
+        background: #ffffff !important;
+        display: block !important;
+        padding: 0 !important;
+        min-height: auto !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      body > div {
+        max-width: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        animation: none !important;
+      }
+
+      body > div > :not(#output) {
+        display: none !important;
+      }
+
+      #output {
+        display: block !important;
+        margin-top: 0 !important;
+      }
+
+      #printBtn {
+        display: none !important;
+      }
+
+      #output, #output * {
+        visibility: visible !important;
+      }
+
+      #output .shadow-sm,
+      #output .shadow-md,
+      #output .shadow-inner,
+      #output .shadow-lg,
+      #output .shadow-2xl {
+        box-shadow: none !important;
+      }
+
+      #output .bg-gradient-to-br,
+      #output .bg-gradient-to-r,
+      #output .bg-indigo-50\/60,
+      #output .bg-green-100,
+      #output .bg-white,
+      #output .rounded-2xl,
+      #output .rounded-xl,
+      #output .rounded-lg {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      #output > div {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+
+    body.print-mode {
+      background: #ffffff !important;
+      display: block !important;
+      padding: 0 !important;
+      min-height: auto !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body.print-mode > div {
+      max-width: none !important;
+      width: 100% !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      animation: none !important;
+    }
+
+    body.print-mode .no-print {
+      display: none !important;
+    }
+
+    body.print-mode #output {
+      display: block !important;
+      margin-top: 0 !important;
+    }
+
+    body.print-mode #printBtn {
+      display: none !important;
+    }
+
+    body.print-mode #output,
+    body.print-mode #output * {
+      visibility: visible !important;
+    }
+
+    body.print-mode #output .shadow-sm,
+    body.print-mode #output .shadow-md,
+    body.print-mode #output .shadow-inner,
+    body.print-mode #output .shadow-lg,
+    body.print-mode #output .shadow-2xl {
+      box-shadow: none !important;
+    }
+
+    body.print-mode #output > div {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 gradient-bg">
+  <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-2xl animate-fadeInUp">
+    <div class="text-center mb-8 no-print">
+      <div class="inline-block p-3 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full mb-4">
+        <i class="fas fa-calculator text-white text-3xl"></i>
+      </div>
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Wiratama</h1>
+      <p class="text-gray-500 text-sm">Hitung biaya dan keuntungan dengan mudah</p>
+    </div>
+    <section class="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 text-gray-700 no-print">
+      <p class="text-sm uppercase tracking-[0.2em] text-indigo-500 font-semibold mb-2">Digitalisasi Perhitungan Biaya dengan WiraCalc</p>
+      <p class="text-sm leading-relaxed">
+        Inovasi ini mengedepankan penggunaan aplikasi WiraCalc sebagai alat bantu untuk melakukan kalkulasi biaya secara otomatis, transparan, dan akurat, guna meminimalisir kesalahan manual dalam pengelolaan usaha.
+      </p>
+      <div class="grid gap-3 md:grid-cols-3 mt-4 text-sm">
+        <p class="rounded-xl bg-white px-3 py-2 shadow-sm border border-indigo-100"><span class="font-bold text-indigo-700">Otomatisasi</span><br>Menghitung modal dan harga jual dalam sekejap.</p>
+        <p class="rounded-xl bg-white px-3 py-2 shadow-sm border border-indigo-100"><span class="font-bold text-indigo-700">Transparansi</span><br>Menghasilkan rincian biaya yang jelas dan terbuka.</p>
+        <p class="rounded-xl bg-white px-3 py-2 shadow-sm border border-indigo-100"><span class="font-bold text-indigo-700">Akurasi</span><br>Menghindari kesalahan hitung manual yang berisiko pada kerugian usaha.</p>
+      </div>
+    </section>
+    <!-- Form Input -->
+    <form id="form" class="space-y-5 no-print">
+      <div class="relative">
+        <label class="block font-semibold mb-2 text-gray-700" for="gambarProduk">
+          <i class="fas fa-image mr-2 text-pink-500"></i>Upload Gambar Produk
+        </label>
+        <input type="file" id="gambarProduk" accept="image/*" class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-pink-500 transition-all duration-300" />
+        <div class="mt-2 text-center">
+          <img id="previewGambar" src="" alt="Preview Gambar" class="mx-auto rounded-lg shadow h-32 object-cover hidden" />
+        </div>
+      </div>
+      <div class="relative">
+        <label class="block font-semibold mb-2 text-gray-700" for="namaProduk">
+          <i class="fas fa-box mr-2 text-purple-500"></i>Nama Produk
+        </label>
+        <input type="text" id="namaProduk" 
+          class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 transition-all duration-300" 
+          placeholder="Contoh: Nasi Goreng" required>
+      </div>
+      <section class="rounded-2xl border border-gray-200 p-5 bg-gray-50">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-shopping-basket mr-2 text-green-500"></i>Bahan Baku</h3>
+            <p class="text-sm text-gray-500">Isi nama bahan, jumlah, satuan, dan harga per satuan.</p>
+          </div>
+          <button type="button" id="addBahanBtn" class="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700 transition-colors">
+            <i class="fas fa-plus"></i>Tambah Bahan
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="cost-table min-w-full text-sm">
+            <thead class="text-left text-gray-600">
+              <tr>
+                <th class="py-3 pr-3 font-semibold">Nama bahan</th>
+                <th class="py-3 pr-3 font-semibold w-24">Jumlah</th>
+                <th class="py-3 pr-3 font-semibold w-28">Satuan</th>
+                <th class="py-3 pr-3 font-semibold w-40">Harga</th>
+                <th class="py-3 font-semibold w-20">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="bahanRows"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="rounded-2xl border border-gray-200 p-5 bg-gray-50">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-gears mr-2 text-red-500"></i>Biaya Operasional</h3>
+            <p class="text-sm text-gray-500">Masukkan biaya tambahan seperti gas, listrik, kemasan, atau transport.</p>
+          </div>
+          <button type="button" id="addOperasionalBtn" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700 transition-colors">
+            <i class="fas fa-plus"></i>Tambah Biaya
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="cost-table min-w-full text-sm">
+            <thead class="text-left text-gray-600">
+              <tr>
+                <th class="py-3 pr-3 font-semibold">Nama biaya</th>
+                <th class="py-3 pr-3 font-semibold w-40">Modal</th>
+                <th class="py-3 font-semibold w-20">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="operasionalRows"></tbody>
+          </table>
+        </div>
+      </section>
+      <div class="relative">
+        <label class="block font-semibold mb-2 text-gray-700" for="margin">
+          <i class="fas fa-percent mr-2 text-yellow-500"></i>Margin Keuntungan
+        </label>
+        <div class="relative">
+          <input type="number" id="margin" 
+            class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 transition-all duration-300" 
+            placeholder="Contoh: 30" min="0" required>
+          <span class="absolute right-4 top-3.5 text-gray-500 font-medium">%</span>
+        </div>
+      </div>
+      <div class="relative">
+        <label class="block font-semibold mb-2 text-gray-700" for="jumlahPorsi">
+          <i class="fas fa-utensils mr-2 text-blue-500"></i>Jumlah Porsi
+        </label>
+        <input type="number" id="jumlahPorsi" 
+          class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 transition-all duration-300" 
+          placeholder="Contoh: 10" min="1" required>
+      </div>
+      <button type="submit" 
+        class="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white py-3.5 rounded-lg font-semibold hover:from-purple-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 shadow-lg">
+        <i class="fas fa-calculator mr-2"></i>Hitung Sekarang
+      </button>
+      <button type="button" id="resetBtn" title="Reset" class="w-full mt-2 bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700 py-3.5 rounded-lg font-semibold hover:from-gray-400 hover:to-gray-500 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center">
+        <i class="fas fa-rotate-right mr-2"></i>Reset
+      </button>
+    </form>
+    <!-- Output Table -->
+    <div id="output" class="mt-8 hidden animate-fadeInUp">
+      <div class="text-center mb-4">
+        <img id="outputGambar" src="" alt="Gambar Produk" class="mx-auto rounded-lg shadow h-32 object-cover mb-2 hidden" />
+      </div>
+      <div class="text-center mb-4">
+        <div class="inline-block p-2 bg-green-100 rounded-full mb-2">
+          <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800">Hasil Perhitungan</h2>
+      </div>
+      <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 shadow-inner">
+        <div class="space-y-4">
+          <div class="bg-white rounded-lg p-4 shadow-sm flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-tag text-purple-500 text-xl mr-3"></i>
+              <span class="font-semibold text-gray-700">Nama Produk</span>
+            </div>
+            <span class="font-bold text-gray-900" id="outNamaProduk"></span>
+          </div>
+          <div class="bg-white rounded-lg p-4 shadow-sm flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-wallet text-blue-500 text-xl mr-3"></i>
+              <span class="font-semibold text-gray-700">Total Modal</span>
+            </div>
+            <span class="font-bold text-blue-600 text-lg" id="outTotalModal"></span>
+          </div>
+          <div class="bg-white rounded-lg p-4 shadow-sm flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-basket-shopping text-green-500 text-xl mr-3"></i>
+              <span class="font-semibold text-gray-700">Total Bahan Baku</span>
+            </div>
+            <span class="font-bold text-green-600 text-lg" id="outTotalBahan"></span>
+          </div>
+          <div class="bg-white rounded-lg p-4 shadow-sm flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-gears text-red-500 text-xl mr-3"></i>
+              <span class="font-semibold text-gray-700">Total Operasional</span>
+            </div>
+            <span class="font-bold text-red-600 text-lg" id="outTotalOperasional"></span>
+          </div>
+          <div class="rounded-lg border border-green-100 bg-white p-4 shadow-sm">
+            <div class="flex items-center mb-3">
+              <i class="fas fa-list-check text-green-500 text-xl mr-3"></i>
+              <span class="font-semibold text-gray-700">Rincian Bahan</span>
+            </div>
+            <div id="outputBahanSummary" class="space-y-3"></div>
+          </div>
+          <div class="rounded-lg border border-red-100 bg-white p-4 shadow-sm">
+            <div class="flex items-center mb-3">
+              <i class="fas fa-receipt text-red-500 text-xl mr-3"></i>
+              <span class="font-semibold text-gray-700">Rincian Operasional</span>
+            </div>
+            <div id="outputOperasionalSummary" class="space-y-3"></div>
+          </div>
+          <div class="bg-white rounded-lg p-4 shadow-sm flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-shopping-cart text-green-500 text-xl mr-3"></i>
+              <span class="font-semibold text-gray-700">Harga Jual/Porsi</span>
+            </div>
+            <span class="font-bold text-green-600 text-lg" id="outHargaJual"></span>
+          </div>
+          <div class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg p-4 shadow-md flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-coins text-white text-xl mr-3"></i>
+              <span class="font-semibold text-white">Total Keuntungan</span>
+            </div>
+            <span class="font-bold text-white text-xl" id="outTotalKeuntungan"></span>
+          </div>
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100 flex items-center justify-between">
+              <div class="flex items-center">
+                <i class="fas fa-scale-balanced text-indigo-500 text-xl mr-3"></i>
+                <span class="font-semibold text-gray-700">HPP/Porsi</span>
+              </div>
+              <span class="font-bold text-indigo-600 text-lg" id="outHppPerPorsi"></span>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100 flex items-center justify-between">
+              <div class="flex items-center">
+                <i class="fas fa-arrow-trend-up text-emerald-500 text-xl mr-3"></i>
+                <span class="font-semibold text-gray-700">Untung/Porsi</span>
+              </div>
+              <span class="font-bold text-emerald-600 text-lg" id="outUntungPerPorsi"></span>
+            </div>
+          </div>
+          <button type="button" id="printBtn" class="w-full mt-2 rounded-lg border border-indigo-200 bg-white py-3.5 font-semibold text-indigo-700 shadow-sm hover:bg-indigo-50 transition-all duration-300">
+            <i class="fas fa-print mr-2"></i>Cetak Hasil
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Fungsi untuk memformat angka ke Rupiah
+    function formatRupiah(angka) {
+      return 'Rp ' + Number(angka).toLocaleString('id-ID');
+    }
+
+    const STORAGE_KEY = 'wiracalc-state-v1';
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function formatInputRupiah(input) {
+      let value = input.value.replace(/[^0-9]/g, '');
+      if (value === '') {
+        input.value = '';
+        input.setAttribute('data-value', '');
+        return;
+      }
+      input.value = parseInt(value, 10).toLocaleString('id-ID');
+      input.setAttribute('data-value', value);
+    }
+
+    function createBahanRow() {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="py-3 pr-3 align-top"><input type="text" class="bahan-nama w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none" placeholder="Contoh: Beras" required></td>
+        <td class="py-3 pr-3 align-top"><input type="number" class="bahan-jumlah w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none" placeholder="1" min="0.01" step="0.01" required></td>
+        <td class="py-3 pr-3 align-top"><input type="text" class="bahan-satuan w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none" placeholder="kg / pcs" required></td>
+        <td class="py-3 pr-3 align-top"><input type="text" class="bahan-harga w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none" placeholder="0" required></td>
+        <td class="py-3 align-top text-center"><button type="button" class="remove-row inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 py-2 text-gray-600 hover:bg-red-100 hover:text-red-600"><i class="fas fa-trash"></i></button></td>
+      `;
+      return row;
+    }
+
+    function fillBahanRow(row, data) {
+      row.querySelector('.bahan-nama').value = data.nama || '';
+      row.querySelector('.bahan-jumlah').value = data.jumlah || '';
+      row.querySelector('.bahan-satuan').value = data.satuan || '';
+      const hargaInput = row.querySelector('.bahan-harga');
+      if (data.harga !== undefined && data.harga !== null && data.harga !== '') {
+        hargaInput.value = Number(data.harga).toLocaleString('id-ID');
+        hargaInput.setAttribute('data-value', String(data.harga));
+      }
+    }
+
+    function createOperasionalRow() {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="py-3 pr-3 align-top"><input type="text" class="operasional-nama w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-red-500 focus:outline-none" placeholder="Contoh: Gas" required></td>
+        <td class="py-3 pr-3 align-top"><input type="text" class="operasional-modal w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-red-500 focus:outline-none" placeholder="0" required></td>
+        <td class="py-3 align-top text-center"><button type="button" class="remove-row inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 py-2 text-gray-600 hover:bg-red-100 hover:text-red-600"><i class="fas fa-trash"></i></button></td>
+      `;
+      return row;
+    }
+
+    function fillOperasionalRow(row, data) {
+      row.querySelector('.operasional-nama').value = data.nama || '';
+      const modalInput = row.querySelector('.operasional-modal');
+      if (data.modal !== undefined && data.modal !== null && data.modal !== '') {
+        modalInput.value = Number(data.modal).toLocaleString('id-ID');
+        modalInput.setAttribute('data-value', String(data.modal));
+      }
+    }
+
+    function addBahanRow() {
+      const row = createBahanRow();
+      document.getElementById('bahanRows').appendChild(row);
+    }
+
+    function addOperasionalRow() {
+      const row = createOperasionalRow();
+      document.getElementById('operasionalRows').appendChild(row);
+    }
+
+    function collectRows(selector, rowType) {
+      const rows = Array.from(document.querySelectorAll(selector));
+      return rows.map((row) => {
+        if (rowType === 'bahan') {
+          const nama = row.querySelector('.bahan-nama').value.trim();
+          const jumlah = parseFloat(row.querySelector('.bahan-jumlah').value) || 0;
+          const satuan = row.querySelector('.bahan-satuan').value.trim();
+          const harga = parseFloat(row.querySelector('.bahan-harga').getAttribute('data-value') || '0');
+          return { nama, jumlah, satuan, harga, subtotal: jumlah * harga };
+        }
+
+        const nama = row.querySelector('.operasional-nama').value.trim();
+        const modal = parseFloat(row.querySelector('.operasional-modal').getAttribute('data-value') || '0');
+        return { nama, modal };
+      }).filter((item) => {
+        if (rowType === 'bahan') {
+          return item.nama || item.jumlah || item.satuan || item.harga;
+        }
+        return item.nama || item.modal;
+      });
+    }
+
+    function renderRowSummary(items, containerId, emptyText, formatter) {
+      const container = document.getElementById(containerId);
+      if (!items.length) {
+        container.innerHTML = `<p class="text-sm text-gray-500">${emptyText}</p>`;
+        return;
+      }
+
+      container.innerHTML = items.map((item, index) => formatter(item, index)).join('');
+    }
+
+    function collectState() {
+      const bahanRows = collectRows('#bahanRows tr', 'bahan');
+      const operasionalRows = collectRows('#operasionalRows tr', 'operasional');
+      const state = {
+        namaProduk: document.getElementById('namaProduk').value,
+        margin: document.getElementById('margin').value,
+        jumlahPorsi: document.getElementById('jumlahPorsi').value,
+        previewImage: document.getElementById('previewGambar').src || '',
+        bahanRows,
+        operasionalRows
+      };
+      const hasil = document.getElementById('output').classList.contains('hidden')
+        ? null
+        : {
+            outNamaProduk: document.getElementById('outNamaProduk').textContent,
+            outTotalModal: document.getElementById('outTotalModal').textContent,
+            outTotalBahan: document.getElementById('outTotalBahan').textContent,
+            outTotalOperasional: document.getElementById('outTotalOperasional').textContent,
+            outHargaJual: document.getElementById('outHargaJual').textContent,
+            outTotalKeuntungan: document.getElementById('outTotalKeuntungan').textContent,
+            outHppPerPorsi: document.getElementById('outHppPerPorsi').textContent,
+            outUntungPerPorsi: document.getElementById('outUntungPerPorsi').textContent,
+            bahanSummary: document.getElementById('outputBahanSummary').innerHTML,
+            operasionalSummary: document.getElementById('outputOperasionalSummary').innerHTML,
+            outputImage: document.getElementById('outputGambar').src || ''
+          };
+
+      if (hasil) {
+        state.hasil = hasil;
+      }
+
+      return state;
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
+      } catch (error) {
+        // ponytail: simpanan lokal boleh gagal jika storage penuh atau diblokir.
+      }
+    }
+
+    function renderSavedResult(saved) {
+      if (!saved) {
+        return;
+      }
+
+      document.getElementById('output').classList.remove('hidden');
+      document.getElementById('outNamaProduk').textContent = saved.outNamaProduk || '';
+      document.getElementById('outTotalModal').textContent = saved.outTotalModal || '';
+      document.getElementById('outTotalBahan').textContent = saved.outTotalBahan || '';
+      document.getElementById('outTotalOperasional').textContent = saved.outTotalOperasional || '';
+      document.getElementById('outHargaJual').textContent = saved.outHargaJual || '';
+      document.getElementById('outTotalKeuntungan').textContent = saved.outTotalKeuntungan || '';
+      document.getElementById('outHppPerPorsi').textContent = saved.outHppPerPorsi || '';
+      document.getElementById('outUntungPerPorsi').textContent = saved.outUntungPerPorsi || '';
+      document.getElementById('outputBahanSummary').innerHTML = saved.bahanSummary || '';
+      document.getElementById('outputOperasionalSummary').innerHTML = saved.operasionalSummary || '';
+
+      if (saved.outputImage) {
+        document.getElementById('outputGambar').src = saved.outputImage;
+        document.getElementById('outputGambar').classList.remove('hidden');
+      }
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          return false;
+        }
+
+        const state = JSON.parse(raw);
+        document.getElementById('namaProduk').value = state.namaProduk || '';
+        document.getElementById('margin').value = state.margin || '';
+        document.getElementById('jumlahPorsi').value = state.jumlahPorsi || '';
+
+        document.getElementById('bahanRows').innerHTML = '';
+        document.getElementById('operasionalRows').innerHTML = '';
+
+        const bahanRows = Array.isArray(state.bahanRows) && state.bahanRows.length ? state.bahanRows : [{}];
+        const operasionalRows = Array.isArray(state.operasionalRows) && state.operasionalRows.length ? state.operasionalRows : [{}];
+
+        bahanRows.forEach((data) => {
+          const row = createBahanRow();
+          fillBahanRow(row, data);
+          document.getElementById('bahanRows').appendChild(row);
+        });
+
+        operasionalRows.forEach((data) => {
+          const row = createOperasionalRow();
+          fillOperasionalRow(row, data);
+          document.getElementById('operasionalRows').appendChild(row);
+        });
+
+        if (state.previewImage) {
+          document.getElementById('previewGambar').src = state.previewImage;
+          document.getElementById('previewGambar').classList.remove('hidden');
+        }
+
+        renderSavedResult(state.hasil || null);
+        return true;
+      } catch (error) {
+        localStorage.removeItem(STORAGE_KEY);
+        return false;
+      }
+    }
+
+      // Event listener untuk input bahan baku dan biaya masak
+    document.getElementById('addBahanBtn').addEventListener('click', addBahanRow);
+    document.getElementById('addOperasionalBtn').addEventListener('click', addOperasionalRow);
+
+    document.getElementById('bahanRows').addEventListener('click', function(e) {
+      const button = e.target.closest('.remove-row');
+      if (!button) return;
+      if (document.querySelectorAll('#bahanRows tr').length > 1) {
+        button.closest('tr').remove();
+        saveState();
+      }
+    });
+
+    document.getElementById('operasionalRows').addEventListener('click', function(e) {
+      const button = e.target.closest('.remove-row');
+      if (!button) return;
+      if (document.querySelectorAll('#operasionalRows tr').length > 1) {
+        button.closest('tr').remove();
+        saveState();
+      }
+    });
+
+    document.addEventListener('input', function(e) {
+      if (e.target.classList.contains('bahan-harga') || e.target.classList.contains('operasional-modal')) {
+        formatInputRupiah(e.target);
+      }
+      if (
+        e.target.id === 'namaProduk' ||
+        e.target.id === 'margin' ||
+        e.target.id === 'jumlahPorsi' ||
+        e.target.classList.contains('bahan-nama') ||
+        e.target.classList.contains('bahan-jumlah') ||
+        e.target.classList.contains('bahan-satuan') ||
+        e.target.classList.contains('bahan-harga') ||
+        e.target.classList.contains('operasional-nama') ||
+        e.target.classList.contains('operasional-modal')
+      ) {
+        saveState();
+      }
+    });
+
+      // Preview gambar produk
+      document.getElementById('gambarProduk').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            document.getElementById('previewGambar').src = ev.target.result;
+            document.getElementById('previewGambar').classList.remove('hidden');
+            saveState();
+          };
+          reader.readAsDataURL(file);
+        } else {
+          document.getElementById('previewGambar').src = '';
+          document.getElementById('previewGambar').classList.add('hidden');
+          saveState();
+        }
+      });
+
+
+
+      // Fungsi untuk reset form dan hasil
+      function resetForm() {
+        document.getElementById('form').reset();
+        document.getElementById('gambarProduk').value = '';
+        document.getElementById('bahanRows').innerHTML = '';
+        document.getElementById('operasionalRows').innerHTML = '';
+        addBahanRow();
+        addOperasionalRow();
+        document.getElementById('output').classList.add('hidden');
+        document.getElementById('outNamaProduk').textContent = '';
+        document.getElementById('outTotalModal').textContent = '';
+        document.getElementById('outTotalBahan').textContent = '';
+        document.getElementById('outTotalOperasional').textContent = '';
+        document.getElementById('outHargaJual').textContent = '';
+        document.getElementById('outTotalKeuntungan').textContent = '';
+        document.getElementById('outHppPerPorsi').textContent = '';
+        document.getElementById('outUntungPerPorsi').textContent = '';
+        document.getElementById('outputBahanSummary').innerHTML = '';
+        document.getElementById('outputOperasionalSummary').innerHTML = '';
+          document.getElementById('previewGambar').src = '';
+          document.getElementById('previewGambar').classList.add('hidden');
+          document.getElementById('outputGambar').src = '';
+          document.getElementById('outputGambar').classList.add('hidden');
+        localStorage.removeItem(STORAGE_KEY);
+      }
+
+    // Event listener untuk form submit
+    document.getElementById('form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const namaProduk = document.getElementById('namaProduk').value.trim();
+      const margin = parseFloat(document.getElementById('margin').value) || 0;
+      const jumlahPorsi = parseInt(document.getElementById('jumlahPorsi').value) || 1;
+      const bahanRows = collectRows('#bahanRows tr', 'bahan');
+      const operasionalRows = collectRows('#operasionalRows tr', 'operasional');
+
+      if (!namaProduk || margin < 0 || jumlahPorsi < 1 || !bahanRows.length || !operasionalRows.length) {
+        alert('Mohon isi nama produk, minimal satu bahan, dan minimal satu biaya operasional.');
+        return;
+      }
+
+      const bahanValid = bahanRows.every((item) => item.nama && item.jumlah > 0 && item.satuan && item.harga > 0);
+      const operasionalValid = operasionalRows.every((item) => item.nama && item.modal > 0);
+
+      if (!bahanValid || !operasionalValid) {
+        alert('Semua baris bahan dan biaya operasional harus diisi lengkap.');
+        return;
+      }
+
+      const totalBahan = bahanRows.reduce((total, item) => total + item.subtotal, 0);
+      const totalOperasional = operasionalRows.reduce((total, item) => total + item.modal, 0);
+      const totalModal = totalBahan + totalOperasional;
+      const hppPerPorsi = totalModal / jumlahPorsi;
+      // Hitung harga jual per porsi
+      const hargaJualPerPorsi = (totalModal * (1 + margin / 100)) / jumlahPorsi;
+      // Hitung total keuntungan
+      const totalKeuntungan = (hargaJualPerPorsi * jumlahPorsi) - totalModal;
+      const untungPerPorsi = totalKeuntungan / jumlahPorsi;
+
+      // Tampilkan hasil ke tabel
+      document.getElementById('outNamaProduk').textContent = namaProduk;
+      document.getElementById('outTotalModal').textContent = formatRupiah(totalModal);
+      document.getElementById('outTotalBahan').textContent = formatRupiah(totalBahan);
+      document.getElementById('outTotalOperasional').textContent = formatRupiah(totalOperasional);
+      document.getElementById('outHargaJual').textContent = formatRupiah(Math.round(hargaJualPerPorsi));
+      document.getElementById('outTotalKeuntungan').textContent = formatRupiah(Math.round(totalKeuntungan));
+      document.getElementById('outHppPerPorsi').textContent = formatRupiah(Math.round(hppPerPorsi));
+      document.getElementById('outUntungPerPorsi').textContent = formatRupiah(Math.round(untungPerPorsi));
+      document.getElementById('output').classList.remove('hidden');
+      renderRowSummary(bahanRows, 'outputBahanSummary', 'Belum ada bahan yang diinput.', (item, index) => `
+        <div class="flex items-center justify-between gap-4 rounded-lg bg-white px-4 py-3 shadow-sm">
+          <div>
+            <p class="font-semibold text-gray-800">${index + 1}. ${escapeHtml(item.nama)}</p>
+            <p class="text-sm text-gray-500">${item.jumlah} ${escapeHtml(item.satuan)} × ${formatRupiah(item.harga)}</p>
+          </div>
+          <p class="font-bold text-green-600">${formatRupiah(item.subtotal)}</p>
+        </div>
+      `);
+      renderRowSummary(operasionalRows, 'outputOperasionalSummary', 'Belum ada biaya operasional yang diinput.', (item, index) => `
+        <div class="flex items-center justify-between gap-4 rounded-lg bg-white px-4 py-3 shadow-sm">
+          <p class="font-semibold text-gray-800">${index + 1}. ${escapeHtml(item.nama)}</p>
+          <p class="font-bold text-red-600">${formatRupiah(item.modal)}</p>
+        </div>
+      `);
+        // Tampilkan gambar di hasil
+          const gambarInput = document.getElementById('gambarProduk');
+          const gambarSrc = gambarInput.files.length ? document.getElementById('previewGambar').src : '';
+        if (gambarSrc) {
+          document.getElementById('outputGambar').src = gambarSrc;
+          document.getElementById('outputGambar').classList.remove('hidden');
+        } else {
+          document.getElementById('outputGambar').src = '';
+          document.getElementById('outputGambar').classList.add('hidden');
+        }
+      saveState();
+    });
+
+      // Event listener untuk tombol reset
+      document.getElementById('resetBtn').addEventListener('click', resetForm);
+      document.getElementById('printBtn').addEventListener('click', function() {
+        document.body.classList.add('print-mode');
+        window.print();
+      });
+
+      window.addEventListener('beforeprint', function() {
+        document.body.classList.add('print-mode');
+      });
+
+      window.addEventListener('afterprint', function() {
+        document.body.classList.remove('print-mode');
+      });
+
+      if (!loadState()) {
+        addBahanRow();
+        addOperasionalRow();
+      }
+
+  </script>
+</body>
+</html>
